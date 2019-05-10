@@ -8,6 +8,7 @@ import torch
 import torch.utils.data as data
 import torchvision.transforms as transforms
 from m_utils import load_split
+from train import shape
 
 #output_size = (360, 450)
 output_size = (720, 900)
@@ -18,9 +19,9 @@ class FireWork_Dataset(torch.utils.data.Dataset):
     def __init__(self, data_path, type='train'):
         txt_path = ''
         if type == 'train':
-            txt_path = data_path + '/shape3_train_path.txt'
+            txt_path = data_path + '/' + shape +'_train_path.txt'
         if type == 'test':
-            txt_path = data_path + '/shape3_test_path.txt'
+            txt_path = data_path + '/' + shape +'_test_path.txt'
         fh = open(txt_path, 'r')
         imgs = []
         dpts = []

@@ -10,7 +10,10 @@ from weights import load_weights
 from m_utils import load_split, loss_mse, loss_huber, loss_mse_alone, update_lr
 from metrics import AverageMeter, Result
 
+#unet
+from unet_model import UNet
 
+shape = 'shape1' # 当前的形状,18表示每中18个example.
 output_dir = './run'
 resume = False
 model_path = './run/checkpoint-0.pth.tar'
@@ -21,7 +24,7 @@ weights_file = "./model/NYU_ResNet-UpProj.npy"
 
 dtype = torch.cuda.FloatTensor
 num_epochs = 30
-batch_size = 2  #测试集和验证集的batch_size设置成1方便保存
+batch_size = 1 #测试集和验证集的batch_size设置成1方便保存
 learning_rate = 1.0e-3
 momentum = 0.9
 weight_decay = 0.0005
@@ -38,7 +41,6 @@ def main():
 
     # 2.Load model
     if resume:
-        # TODO
         # best result应当从保存的模型中读出来
         checkpoint = torch.load(model_path)
         start_epoch = checkpoint['epoch'] + 1
@@ -47,13 +49,17 @@ def main():
         # model.load_state_dict(model_dict)
         model = checkpoint['model']
         print("loaded checkpoint (epoch {})".format(checkpoint['epoch']))
-        del checkpoint  # 删除载入的模型
         #del model_dict
         print("加载已经保存好的模型")
+        # clear memory
+        del checkpoint
+        # del model_dict
+        torch.cuda.empty_cache()
 
     else:
         print("创建模型")
-        model = FCRN(batch_size)
+        # model = FCRN(batch_size)
+        model=UNet()
         if use_tensorflow:
             model.load_state_dict(load_weights(model, weights_file, dtype))
         start_epoch = 0
@@ -81,14 +87,15 @@ def main():
         # TODO 调整学习率
         train(train_loader, model, loss_fn, optimizer, epoch, logger)
 
+        # 验证当前模型
         result, img_merge = validate(test_loader, model, epoch, logger)
         is_best = result.absrel < best_result.absrel
         if is_best:
             best_result = result
             with open(best_txt, 'w') as txtfile:
                 txtfile.write(
-                    "epoch={}\nrmse={:.3f}\nrel={:.3f}\nlog10={:.3f}\nd1={:.3f}\nd2={:.3f}\ndd31={:.3f}\nt_gpu={:.4f}\n".
-                        format(epoch, result.rmse, result.absrel, result.lg10, result.delta1, result.delta2,
+                    "shape={}\nepoch={}\nrmse={:.3f}\nrel={:.3f}\nlog10={:.3f}\nd1={:.3f}\nd2={:.3f}\ndd31={:.3f}\nt_gpu={:.4f}\n".
+                        format(shape, epoch, result.rmse, result.absrel, result.lg10, result.delta1, result.delta2,
                                result.delta3,
                                result.gpu_time))
             if img_merge is not None:
@@ -97,7 +104,8 @@ def main():
 
         # 每个epoch保存检查点
         save_checkpoint({'epoch': epoch, 'model': model, 'optimizer': optimizer, 'best_result': best_result},
-                        is_best, epoch, output_dir)
+                                is_best, epoch, output_dir)
+
         print("模型保存成功\n")
 
 
@@ -160,7 +168,7 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
             logger.add_scalar('Train/Delta1', result.delta1, current_step)
             logger.add_scalar('Train/Delta2', result.delta2, current_step)
             logger.add_scalar('Train/Delta3', result.delta3, current_step)
-        avg = average_meter.average()
+    avg = average_meter.average()
 
 # 每个epoch结束进行验证
 def validate(val_loader, model, epoch, logger):
@@ -189,6 +197,9 @@ def validate(val_loader, model, epoch, logger):
         step = i // skip
         if i % skip == 0:
             img_path = output_dir + '/result'
+            # 如果不存在文件夹，新建一个
+            if os.path.exists(img_path) != True:
+                os.mkdir(img_path)
             save_image(input, target, output, img_path, step)
 
         if (i + 1) % 10== 0:

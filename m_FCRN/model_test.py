@@ -13,7 +13,7 @@ from loader import getNYUDataset, getFireWorkDataset
 from metrics import AverageMeter, Result
 from m_utils import get_useful_depth
 
-model_path = './run/model_best.pth.tar'
+model_path = './test/model_best.pth.tar'
 output_dir = './test'
 output_size = (720, 900)
 
@@ -81,7 +81,7 @@ def visualization_test():
         dpt = get_useful_depth(img, dpt)
         plt.imsave(output_dir + '/dpt/' + str(img_name) + '.png', dpt, cmap=matplotlib.cm.jet)
 
-        # 保存RGBA图像也就是原始的深度图
+        # 保存RGBA图像也就是能够重建用的的深度图
         dpt = dpt * 255.0
         cv.imwrite(output_dir + '/dpt_cv/' + str(img_name) + '.png', dpt)
 

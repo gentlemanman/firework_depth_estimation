@@ -43,7 +43,6 @@ class Bottleneck(nn.Module):
 
         return out
 
-
 class UpProject(nn.Module):
 
     def __init__(self, in_channels, out_channels, batch_size):
@@ -71,7 +70,7 @@ class UpProject(nn.Module):
 
     def forward(self, x):
         # b, 10, 8, 1024
-        out1_1 = self.conv1_1(nn.functional.pad(x, (1, 1, 1, 1)))
+        out1_1 = self.conv1_1(nn.functional.pad(x, (1, 1, 1, 1))) #  512, 8, 10
         out1_2 = self.conv1_2(nn.functional.pad(x, (1, 1, 0, 1)))#right interleaving padding
         #out1_2 = self.conv1_2(nn.functional.pad(x, (1, 1, 1, 0)))#author's interleaving pading in github
         out1_3 = self.conv1_3(nn.functional.pad(x, (0, 1, 1, 1)))#right interleaving padding
@@ -90,8 +89,9 @@ class UpProject(nn.Module):
         height = out1_1.size()[2]
         width = out1_1.size()[3]
 
-        out1_1_2 = torch.stack((out1_1, out1_2), dim=-3).permute(0, 1, 3, 4, 2).contiguous().view(
+        out1_1_2 = torch.stack((out1_1, out1_2), dim=-3).permute(0, 1, 3, 4, 2).contiguous().view(  # 512, 8, 20
             self.batch_size, -1, height, width * 2)
+
         out1_3_4 = torch.stack((out1_3, out1_4), dim=-3).permute(0, 1, 3, 4, 2).contiguous().view(
             self.batch_size, -1, height, width * 2)
 
@@ -118,9 +118,7 @@ class UpProject(nn.Module):
 
         return out
 
-
 class FCRN(nn.Module):
-
     def __init__(self, batch_size):
         super(FCRN, self).__init__()
         self.inplanes = 64
@@ -164,6 +162,7 @@ class FCRN(nn.Module):
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
+        # expansion = 4
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
                 nn.Conv2d(self.inplanes, planes * block.expansion, kernel_size=1,
@@ -218,7 +217,7 @@ from torchsummary import summary
 if __name__ == '__main__':
     batch_size = 2
     net = FCRN(batch_size).cuda()
-    x = torch.zeros(batch_size, 3, 720, 900).cuda()
+    x = torch.zeros(batch_size, 3, 228, 304).cuda()
     print(net(x).size())
     #summary(net, (3, 228, 304))
 
