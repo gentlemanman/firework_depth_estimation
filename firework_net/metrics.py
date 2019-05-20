@@ -99,7 +99,6 @@ def print_train_metrics(epoch, idx, batch_num, lr, data_time, gpu_time, loss, re
           'Loss={loss:.3f} '
           'RMSE={result.rmse:.3f}({average.rmse:.3f}) '
           'REL={result.absrel:.3f}({average.absrel:.3f}) '
-          'Log10={result.lg10:.3f}({average.lg10:.3f}) '
           'D1={result.delta1:.3f}({average.delta1:.3f}) '
           'D2={result.delta2:.3f}({average.delta2:.3f}) '
           'D3={result.delta3:.3f}({average.delta3:.3f})'.format(
@@ -110,14 +109,12 @@ def print_test_metrics(idx, batch_num, gpu_time, result, average_meter):
     print('Validate: [{0}/{1}]'
           'RMSE={result.rmse:.2f}({average.rmse:.2f}) '
           'REL={result.absrel:.2f}({average.absrel:.2f}) '
-          'Log10={result.lg10:.3f}({average.lg10:.3f}) '
           'D1={result.delta1:.3f}({average.delta1:.3f}) '
           'D2={result.delta2:.3f}({average.delta2:.3f}) '
           'D3={result.delta3:.3f}({average.delta3:.3f})'.format(
         idx, batch_num, result=result, average=average_meter.average()))
 
 def save_log(logger, lr, cur_step, loss, result):
-
     logger.add_scalar('Learning_rate', lr, cur_step)
     logger.add_scalar('Train/Loss', loss.item(), cur_step)
     logger.add_scalar('Train/RMSE', result.rmse, cur_step)

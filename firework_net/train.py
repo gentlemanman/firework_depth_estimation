@@ -9,7 +9,7 @@ from loader import getFireWorkDataset
 from metrics import Result, AverageMeter, print_train_metrics, print_test_metrics, save_log
 from utils import loss_mse, update_lr, save_checkpoint, save_image, loss_smooth_l1, write_log
 
-shape = '18' # 加载的当前数据集种类
+shape = '50' # 加载的当前数据集种类
 resume = False
 model_path = './run_log/checkpoint-16.pth.tar'
 num_epoch = 30
@@ -77,7 +77,7 @@ def main():
             write_log(best_txt, result, shape, epoch)
 
         # 每个epoch保存检查点
-        save_checkpoint({'epoch': epoch, 'model': model, 'optimizer': optimizer, 'best_result': best_result},
+        save_checkpoint({'epoch': epoch, 'model': model, 'optimizer': optimizer, 'best_result': best_result, 'shape':shape},
                         is_best, epoch, run_log_subdir)
         print('模型保存成功')
 
