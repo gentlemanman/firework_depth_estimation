@@ -88,9 +88,9 @@ class outconv(nn.Module):
         x = self.conv(x)
         return x
 
-class UNet(nn.Module):
+class UNet_big(nn.Module):
     def __init__(self, n_channels=3, n_classes=1):
-        super(UNet, self).__init__()
+        super(UNet_big, self).__init__()
         self.inc = inconv(n_channels, 64)
         self.down1 = down(64, 128)
         self.down2 = down(128, 256)
@@ -115,8 +115,23 @@ class UNet(nn.Module):
         x = self.outc(x)
         return x
 
+
+### compute model params
+def count_param(model):
+    param_count = 0
+    for param in model.parameters():
+        param_count += param.view(-1).size()[0]
+    return param_count
+
+
 # 测试
 if __name__ == '__main__':
-    net = UNet(n_channels=1).cuda()
-    x = torch.zeros(1, 1, 360, 360).cuda()
-    print(net(x).size())
+    print('#### Test Case ###')
+    from torch.autograd import Variable
+    x = Variable(torch.rand(1, 1, 480, 480)).cuda()
+    model = UNet_big(n_channels=1).cuda()
+
+    param = count_param(model)
+    y = model(x)
+    print('Output shape:', y.shape)
+    print('UNet totoal parameters: %.2fM (%d)' % (param / 1e6, param))

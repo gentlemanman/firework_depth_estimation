@@ -3,22 +3,23 @@ import time
 from datetime import datetime
 import torch
 from tensorboardX import SummaryWriter
-from net.unet import UNet
-from net.archs import NestedUNet, Arg
+from net.unet import UNet_big
+from net.archs import NestedUNet, Arg, UNet
 from loader import getFireWorkDataset
 from metrics import Result, AverageMeter, print_train_metrics, print_test_metrics, save_log
 from utils import loss_mse, update_lr, save_checkpoint, save_image, loss_smooth_l1, write_log
 
-shape = '50' # 加载的当前数据集种类
+shape = 'shape1' # 加载的当前数据集种类
 resume = False
 model_path = './run_log/checkpoint-16.pth.tar'
 num_epoch = 30
-batch_size = 2
+batch_size = 8
 run_log = './run_log'
 learning_rate = 1.0e-3
 momentum = 0.9
 
 def main():
+    print(torch.cuda.is_available())
     train_loader, test_loader = getFireWorkDataset(batch_size=batch_size, shape=shape)
     print('数据加载成功')
 
@@ -42,7 +43,8 @@ def main():
     else:
         # model = UNet(n_channels=1)
         arg = Arg()
-        model = NestedUNet(arg)
+        model = UNet(arg)
+        # model = NestedUNet(arg)
         start_epoch = 0
         print('创建模型成功')
 

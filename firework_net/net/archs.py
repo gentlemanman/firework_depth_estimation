@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-import numpy as np
-
 from torch import nn
-from torch.nn import functional as F
 import torch
-from torchvision import models
-import torchvision
-
+from torch.autograd import Variable
+from torchsummary import summary
+from tensorboardX import SummaryWriter
 
 class VGGBlock(nn.Module):
     def __init__(self, in_channels, middle_channels, out_channels, act_func=nn.ReLU(inplace=True)):
@@ -157,11 +154,13 @@ class Arg(object):
 
 if __name__ == '__main__':
     print('#### Test Case ###')
-    from torch.autograd import Variable
     x = Variable(torch.rand(1,1,480,480)).cuda()
     arg = Arg()
-    model = NestedUNet(arg).cuda()
+    # model = NestedUNet(arg).cuda()
+    model = UNet(arg).cuda()
     param = count_param(model)
     y = model(x)
     print('Output shape:',y.shape)
     print('UNet totoal parameters: %.2fM (%d)'%(param/1e6,param))
+    with SummaryWriter(comment='Unet_small') as w:
+        w.add_graph(model, (x))

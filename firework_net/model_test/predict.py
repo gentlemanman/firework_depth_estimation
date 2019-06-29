@@ -8,15 +8,17 @@ import torchvision.transforms as transforms
 from net.archs import NestedUNet, Arg
 from metrics import Result, AverageMeter
 
-model_path = './model_best.pth.tar'
-data_path = './rgb'
+# model_path = './model_best.pth.tar'
+model_path = './checkpoint-29.pth.tar'
+cur_path = './shape4'
+data_path = os.path.join(cur_path, 'rgb')
 batch_size = 1
 img_size = (480, 480)
-cur_path = './'
+
 
 def predict():
     # change original rgb size
-    save_new_rgb(data_path=data_path)
+    # save_new_rgb(data_path=data_path)
     # data
     data_set = predict_Dataset(data_path=data_path)
     data_loader = torch.utils.data.DataLoader(data_set, batch_size=batch_size, shuffle=False, drop_last=True)
@@ -25,8 +27,8 @@ def predict():
     model = checkpoint['model']
     epoch = checkpoint['epoch']
     result = checkpoint['best_result']
-    # shape = checkpoint['shape']
-    shape = 'shape1'
+    shape = checkpoint['shape']
+    # shape = 'shape1'
     print('Current Shape: ', shape)
     print('Loading Model Epoch:', epoch)
     print_result(result)
@@ -46,9 +48,10 @@ def predict():
             save_images(input, output, name, i+1, len(data_loader))
     print('End')
 
+
 # 给定一个待处理的rgb图片文件夹
 class predict_Dataset(torch.utils.data.Dataset):
-    def __init__(self, data_path='./rgb'):
+    def __init__(self, data_path=data_path):
         imgs = []
         labels = [] #用于记录文件的名称
         for (path, dirnames, filenames) in os.walk(data_path):
@@ -65,6 +68,7 @@ class predict_Dataset(torch.utils.data.Dataset):
         img_name = self.labels[index]
 
         img = Image.open(img_path).convert('L')
+        # img = img.convert('1')
         img = crop_720x720(img)
 
         img_transform = transforms.Compose([
@@ -78,9 +82,11 @@ class predict_Dataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.imgs)
 
+
 def crop_720x720(data):
     data = data.crop((90, 0, 810, 720)) ## (left, upper, right, lower)
     return data
+
 
 def save_images(input, output, name, idx, length):
     # 建立保存结果的文件夹
@@ -105,6 +111,7 @@ def save_images(input, output, name, idx, length):
     # 打印处理的进程
     print(str(idx) + '/' + str(length) + ':  ' + str(name) + '.png')
 
+
 def print_result(result):
     print('Best Result in Test Dataset: '
           'RMSE={result.rmse:.3f} '
@@ -113,8 +120,9 @@ def print_result(result):
           'D2={result.delta2:.3f} '
           'D3={result.delta3:.3f}'.format(result=result))
 
+
 # 将rgb图像变换到网络size保存
-def save_new_rgb(data_path='./rgb'):
+def save_new_rgb(data_path=data_path):
     rgb_interpolation_path = os.path.join(cur_path, 'rgb_' + str(img_size[0]) + 'x' + str(img_size[1]))
     if os.path.exists(rgb_interpolation_path) is False:
         os.makedirs(rgb_interpolation_path)
@@ -128,6 +136,7 @@ def save_new_rgb(data_path='./rgb'):
                 img = trans(img)
                 plt.imsave(rgb_interpolation_path + '/' +filename, img)
 
+
 # 剔除无效的像素
 def exclude_invalid(rgb, pre_dpt):
     for i in range(rgb.shape[0]):
@@ -138,4 +147,6 @@ def exclude_invalid(rgb, pre_dpt):
 
 
 if __name__ == '__main__':
-    predict()
+    save_new_rgb(data_path=data_path)
+    # predict()
+

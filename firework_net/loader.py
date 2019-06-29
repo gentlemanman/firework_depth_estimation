@@ -29,6 +29,8 @@ class FireWork_Dataset(torch.utils.data.Dataset):
         dpt_path = self.dpts[index]
         # img = Image.open(img_path).convert('RGB')
         img = Image.open(img_path).convert('L')
+        # 二值化
+        imh = img.convert('1')
         img = crop_720x720(img)
 
         dpt = Image.open(dpt_path).convert('L')
